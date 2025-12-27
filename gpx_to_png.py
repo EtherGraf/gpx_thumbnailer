@@ -157,6 +157,14 @@ class MapCreator:
 		img_y = int( (ytile_frac-self.y1f)*osm_tile_res )
 		return (img_x, img_y)
 
+	def draw_length_bar (self, length):
+		print(f"Length: {length}")
+		if length < 0.0:
+			length = 0.0
+		if length > 1.0:
+			length = 1.0
+		draw = mod_pil_draw.Draw (self.dst_img)
+		draw.rectangle([0, self.h-5, int(self.w * length), self.h], fill="red")
 
 	def draw_track (self, gpx):
 		""" Draw GPX track onto map """
@@ -198,6 +206,7 @@ if (__name__ == '__main__'):
 	parser.add_argument("-s", "--size", type=int, default=256, help="The size of the output .png")
 	parser.add_argument("-t", "--drawtext", action="store_true", help="Draw text information")
 	parser.add_argument("-m", "--drawmap", action="store_true", help="Draw map background")
+	parser.add_argument("-l", "--drawlenbar", action="store_true", help="Draw logarithmic bar signaling legnth of track")
 	args = parser.parse_args()
 
 	gpx_file = args.gpx_file
@@ -245,6 +254,11 @@ if (__name__ == '__main__'):
 		map_creator.cache_area()
 		map_creator.create_area_background()
 		map_creator.draw_track(gpx)
+
+		if args.drawlenbar:
+			loglen = mod_math.log(length_km)/mod_math.log(1000)	# 1000km = 1.0
+			map_creator.draw_length_bar(loglen)
+
 		if args.drawtext:
 			text = [
 				'%2.2f km' % (gpx.length_3d() / 1000.),
