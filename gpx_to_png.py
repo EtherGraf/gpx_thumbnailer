@@ -9,8 +9,10 @@ import gpxpy as mod_gpxpy
 from PIL import Image as mod_pil_image
 from PIL import ImageDraw as mod_pil_draw
 import glob as mod_glob
+from pathlib import Path
+home = str(Path.home())
 osm_base_url = "http://a.tile.opencyclemap.org/cycle"
-osm_cache_base = r"~/.cache/gpx2png"
+osm_cache_base = home+r"/.cache/gpx2png/"
 osm_tile_res = 256
 
 def format_time(time_s):
@@ -27,9 +29,9 @@ def get_tile_url (x, y, z):
 
 
 def get_tile_filename (x, y, z):
-     return r"~/.cache/gpx2png/opencyclemap/%d/%d/%d.png" % (z, x, y)
-#    return r"~/.cache/gpx2png/seznam-turist-trail/%d/%d/%d.png" % (z, x, y)
-#    return r"~/.cache/gpx2png/cuzk-zm/%d/%d/%d.png" % (z, y, x)
+     return osm_cache_base + r"opencyclemap/%d/%d/%d.png" % (z, x, y)
+#    return osm_cache_base + r"seznam-turist-trail/%d/%d/%d.png" % (z, x, y)
+#    return osm_cache_base + r"cuzk-zm/%d/%d/%d.png" % (z, y, x)
 
 def get_map_suffix ():
     return "osm-cycle"
