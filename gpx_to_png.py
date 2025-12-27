@@ -54,7 +54,7 @@ def osm_lat_lon_to_x_y_tile_frac (lat_deg, lon_deg, zoom):
 	return (xtile, ytile)
 
 def osm_get_auto_zoom_level_size ( min_lat, max_lat, min_lon, max_lon, max_width, max_height):
-	""" Gets zoom level which contains at maximum `max_n_tiles` """
+	""" Gets zoom level which fits in given area` """
 	for z in range (17,0,-1):
 		x1, y1 = osm_lat_lon_to_x_y_tile_frac (min_lat, min_lon, z)
 		x2, y2 = osm_lat_lon_to_x_y_tile_frac (max_lat, max_lon, z)
