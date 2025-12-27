@@ -1,0 +1,3 @@
+[Thumbnailer Entry]
+Exec=python3 $HOME/.local/bin/gpx_to_png.py %i %o -s %s -l
+MimeType=application/gpx+xml;
