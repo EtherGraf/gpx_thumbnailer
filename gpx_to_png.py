@@ -24,18 +24,21 @@ def format_time(time_s):
     return '%s:%s:%s' % (str(int(hours)).zfill(2), str(int(minutes % 60)).zfill(2), str(int(time_s % 60)).zfill(2)) 
 
 def get_tile_url (x, y, z):
-     return "http://a.tile.opencyclemap.org/cycle/%d/%d/%d.png" % (z, x, y)
+#    return "http://a.tile.opencyclemap.org/cycle/%d/%d/%d.png" % (z, x, y)
+     return "http://tile.openstreetmap.de/%d/%d/%d.png" % (z, x, y)
 #    return "http://m1.mapserver.mapy.cz/turist_trail-m/%d-%d-%d" % (z, x, y)
 #    return "http://geoportal-rm.cuzk.cz/WMTS_ZM_900913/WMTService.aspx?service=WMTS&request=GetTile&version=1.0.0&layer=ZM&style=default&format=image/png&TileMatrixSet=googlemapscompatibleext2:epsg:3857&TileMatrix=%d&TileRow=%d&TileCol=%d" % (z, y, x)
 
 
 def get_tile_filename (x, y, z):
-     return osm_cache_base + r"opencyclemap/%d/%d/%d.png" % (z, x, y)
+#     return osm_cache_base + r"opencyclemap/%d/%d/%d.png" % (z, x, y)
+     return osm_cache_base + r"openstreetmap/%d/%d/%d.png" % (z, x, y)
 #    return osm_cache_base + r"seznam-turist-trail/%d/%d/%d.png" % (z, x, y)
 #    return osm_cache_base + r"cuzk-zm/%d/%d/%d.png" % (z, y, x)
 
 def get_map_suffix ():
-    return "osm-cycle"
+#    return "osm-cycle"
+    return "openstreetmap"
 #    return "seznam-turist"
 #    return "cuzk"
 
