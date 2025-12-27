@@ -109,18 +109,39 @@ def osm_cache_tile (x,y,z):
 class MapCreator:
 	""" Class for map drawing """
 
-	def __init__(self, min_lat, max_lat, min_lon, max_lon, z):
+	def __init__(self, min_lat, max_lat, min_lon, max_lon, z, width, height):
 		""" constructor """
-		x1, y1 = osm_lat_lon_to_x_y_tile (min_lat, min_lon, z)
-		x2, y2 = osm_lat_lon_to_x_y_tile (max_lat, max_lon, z)
-		self.x1 = min (x1, x2)
-		self.x2 = max (x1, x2)
-		self.y1 = min (y1, y2)
-		self.y2 = max (y1, y2)
-		self.w = (self.x2 - self.x1 + 1) * osm_tile_res
-		self.h = (self.y2 - self.y1 + 1) * osm_tile_res
-		self.z = z
-		print (self.w, self.h)
+		if (width==0) | (height==0):
+			x1, y1 = osm_lat_lon_to_x_y_tile (min_lat, min_lon, z)
+			x2, y2 = osm_lat_lon_to_x_y_tile (max_lat, max_lon, z)
+			self.x1 = min (x1, x2)
+			self.x2 = max (x1, x2)
+			self.y1 = min (y1, y2)
+			self.y2 = max (y1, y2)
+			self.w = (self.x2 - self.x1 + 1) * osm_tile_res
+			self.h = (self.y2 - self.y1 + 1) * osm_tile_res
+			self.z = z
+		else:
+			""" calc center """
+			xc, yc = osm_lat_lon_to_x_y_tile_frac ((max_lat+min_lat)/2, (max_lon+min_lon)/2, z)
+			tx = 1.0 * width / osm_tile_res
+			ty = 1.0 * height / osm_tile_res
+			
+			self.x1f = xc - tx/2
+			self.x2f = xc + tx/2
+			self.y1f = yc - ty/2
+			self.y2f = yc + ty/2
+			self.x1 = int(self.x1f)
+			self.x2 = int(self.x2f)
+			self.y1 = int(self.y1f)
+			self.y2 = int(self.y2f)
+			self.xoff = int((self.x1f-self.x1) * osm_tile_res)
+			self.yoff = int((self.y1f-self.y1) * osm_tile_res)
+			self.w = width
+			self.h = height
+			self.z = z
+			
+		#print (xc, yc, tx, ty, self.w, self.h, self.x1, self.x2, self.y1, self.y2)
 		self.dst_img = mod_pil_image.new ("RGB", (self.w, self.h))
 
 
@@ -138,12 +159,14 @@ class MapCreator:
 			for x in range (self.x1, self.x2+1):
 				try:
 					src_img = mod_pil_image.open (get_tile_filename (x, y, z))
-					dst_x = (x-self.x1)*osm_tile_res
-					dst_y = (y-self.y1)*osm_tile_res
+					dst_x = (x-self.x1)*osm_tile_res - self.xoff
+					dst_y = (y-self.y1)*osm_tile_res - self.yoff
 					self.dst_img.paste (src_img, (dst_x, dst_y))
+					""" draw debug grid """
+					#draw = mod_pil_draw.Draw (self.dst_img)
+					#draw.rectangle([dst_x, dst_y, dst_x+256, dst_y+256],outline="red")
 				except Exception as e:
-					print("Error processing file " + get_tile_filename (x, y, z))
-
+					print("Error processing file " + get_tile_filename (x, y, z) + "Exception: "+str(e))
 
 	def lat_lon_to_image_xy (self, lat_deg, lon_deg):
 		""" Internal. Converts lat, lon into dst_img coordinates in pixels """
@@ -151,8 +174,8 @@ class MapCreator:
 		n = 2.0 ** self.z
 		xtile_frac = (lon_deg + 180.0) / 360.0 * n
 		ytile_frac = (1.0 - mod_math.log(mod_math.tan(lat_rad) + (1 / mod_math.cos(lat_rad))) / mod_math.pi) / 2.0 * n
-		img_x = int( (xtile_frac-self.x1)*osm_tile_res )
-		img_y = int( (ytile_frac-self.y1)*osm_tile_res )
+		img_x = int( (xtile_frac-self.x1f)*osm_tile_res )
+		img_y = int( (ytile_frac-self.y1f)*osm_tile_res )
 		return (img_x, img_y)
 
 
@@ -239,7 +262,7 @@ if (__name__ == '__main__'):
 		print("  Zoom Level	: %d" % z)
 
 		# Create the map
-		map_creator = MapCreator (min_lat, max_lat, min_lon, max_lon, z)
+		map_creator = MapCreator (min_lat, max_lat, min_lon, max_lon, z, args.size, args.size)
 		map_creator.cache_area()
 		map_creator.create_area_background()
 		map_creator.draw_track(gpx)
