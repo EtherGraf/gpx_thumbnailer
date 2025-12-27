@@ -44,15 +44,6 @@ def get_map_suffix ():
 #	return "seznam-turist"
 #	return "cuzk"
 
-def osm_lat_lon_to_x_y_tile (lat_deg, lon_deg, zoom):
-	""" Gets tile containing given coordinate at given zoom level """
-	# taken from http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames, works for OSM maps and mapy.cz
-	lat_rad = mod_math.radians(lat_deg)
-	n = 2.0 ** zoom
-	xtile = int((lon_deg + 180.0) / 360.0 * n)
-	ytile = int((1.0 - mod_math.log(mod_math.tan(lat_rad) + (1 / mod_math.cos(lat_rad))) / mod_math.pi) / 2.0 * n)
-	return (xtile, ytile)
-
 def osm_lat_lon_to_x_y_tile_frac (lat_deg, lon_deg, zoom):
 	""" Gets tile containing given coordinate at given zoom level """
 	# taken from http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames, works for OSM maps and mapy.cz
@@ -61,17 +52,6 @@ def osm_lat_lon_to_x_y_tile_frac (lat_deg, lon_deg, zoom):
 	xtile = (lon_deg + 180.0) / 360.0 * n
 	ytile = (1.0 - mod_math.log(mod_math.tan(lat_rad) + (1 / mod_math.cos(lat_rad))) / mod_math.pi) / 2.0 * n
 	return (xtile, ytile)
-
-def osm_get_auto_zoom_level_tiles ( min_lat, max_lat, min_lon, max_lon, max_n_tiles):
-	""" Gets zoom level which contains at maximum `max_n_tiles` """
-	for z in range (0,17):
-		x1, y1 = osm_lat_lon_to_x_y_tile (min_lat, min_lon, z)
-		x2, y2 = osm_lat_lon_to_x_y_tile (max_lat, max_lon, z)
-		max_tiles = max (abs(x2 - x1), abs(y2 - y1))
-		if (max_tiles >= max_n_tiles):
-			print ("Max tiles: %d" % max_tiles)
-			return z
-	return 17
 
 def osm_get_auto_zoom_level_size ( min_lat, max_lat, min_lon, max_lon, max_width, max_height):
 	""" Gets zoom level which contains at maximum `max_n_tiles` """
@@ -135,8 +115,6 @@ class MapCreator:
 			self.x2 = int(self.x2f)
 			self.y1 = int(self.y1f)
 			self.y2 = int(self.y2f)
-			self.xoff = int((self.x1f-self.x1) * osm_tile_res)
-			self.yoff = int((self.y1f-self.y1) * osm_tile_res)
 			self.w = width
 			self.h = height
 			self.z = z
@@ -159,14 +137,15 @@ class MapCreator:
 			for x in range (self.x1, self.x2+1):
 				try:
 					src_img = mod_pil_image.open (get_tile_filename (x, y, z))
-					dst_x = (x-self.x1)*osm_tile_res - self.xoff
-					dst_y = (y-self.y1)*osm_tile_res - self.yoff
+					dst_x = int((x-self.x1f)*osm_tile_res)
+					dst_y = int((y-self.y1f)*osm_tile_res)
 					self.dst_img.paste (src_img, (dst_x, dst_y))
 					""" draw debug grid """
 					#draw = mod_pil_draw.Draw (self.dst_img)
 					#draw.rectangle([dst_x, dst_y, dst_x+256, dst_y+256],outline="red")
 				except Exception as e:
-					print("Error processing file " + get_tile_filename (x, y, z) + "Exception: "+str(e))
+					print("Error processing file " + get_tile_filename (x, y, z))
+					print("Exception: " + str(e))
 
 	def lat_lon_to_image_xy (self, lat_deg, lon_deg):
 		""" Internal. Converts lat, lon into dst_img coordinates in pixels """
@@ -198,12 +177,12 @@ class MapCreator:
 					idx += 1
 
 	def draw_text(self, text):
-		lineheight = 20
+		lineheight = 16
 		draw = mod_pil_draw.Draw (self.dst_img)
-		fnt = ImageFont.truetype("FreeMonoBold.ttf", lineheight)
+		fnt = ImageFont.truetype("Vera.ttf", lineheight)
 		x,y = 10,10
 		for line in text:
-			draw.text((x, y), line, font=fnt, fill=(255, 0, 0, 128))
+			draw.text((x, y), line, font=fnt, fill=(0, 0, 0, 128))
 			y += lineheight
 
 	def save_image(self, filename):
@@ -258,7 +237,6 @@ if (__name__ == '__main__'):
 		min_lon -= delta_lon * 0.1
 		max_lon += delta_lon * 0.1
 		
-		#z1 = osm_get_auto_zoom_level_tiles (min_lat, max_lat, min_lon, max_lon, 2)
 		z = osm_get_auto_zoom_level_size (min_lat, max_lat, min_lon, max_lon, args.size, args.size)
 		print("  Zoom Level	: %d" % z)
 
