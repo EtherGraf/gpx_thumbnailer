@@ -211,11 +211,12 @@ if (__name__ == '__main__'):
             map_creator.create_area_background()
             map_creator.draw_track(gpx)
             text = [
-				'%2.2f km' % (gpx.length_3d() / 1000.),
-				'%1.0f m up' % uphill,
-				'%s' % format_time(moving_time),
-				'%2.1f km/h' % (length_km / moving_time * 3600) if (moving_time > 0) else "n/a",
-				'%2.1f km/h' % (max_speed * 3600 / 1000)]
+                '%2.2f km' % (gpx.length_3d() / 1000.),
+                '%s' % format_time(moving_time),
+                '%2.1f km/h med' % (length_km / moving_time * 3600) if (moving_time > 0) else "n/a",
+                '%2.1f km/h max' % (max_speed * 3600 / 1000),
+                '%1.0f m up' % uphill,
+            ]
             map_creator.draw_text(text)
             map_creator.save_image (gpx_file[:-4] + '-' + get_map_suffix() + '.png')
 
