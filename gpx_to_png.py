@@ -133,7 +133,6 @@ class MapCreator:
     def draw_track (self, gpx):
         """ Draw GPX track onto map """
         draw = mod_pil_draw.Draw (self.dst_img)
-        trk = 0         # Just changes color of segment a little
         for track in gpx.tracks:
             for segment in track.segments:
                 idx = 0
@@ -144,14 +143,10 @@ class MapCreator:
                         x_from, y_from = self.lat_lon_to_image_xy (point.latitude, point.longitude)
                     else:
                         x_to, y_to = self.lat_lon_to_image_xy (point.latitude, point.longitude)
-#                        draw.line ((x_from,y_from,x_to,y_to), (255,0,trk), 2)
-                        draw.line ((x_from,y_from,x_to,y_to), (0,0,0), 3)
+                        draw.line ((x_from,y_from,x_to,y_to), (255,0,0), 2)
                         x_from = x_to
                         y_from = y_to
                     idx += 1
-                trk += 32
-                if (trk > 160):
-                    trk = 0
                     
 
     def save_image(self, filename):
