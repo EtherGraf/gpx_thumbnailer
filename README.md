@@ -1,7 +1,9 @@
-# gpx_to_png
+# gpx_thumbnailer
 
 # Motivation to write and use it
-I become lazy to download tracks from my old Garmin GPS regularly so they piled up in SD card's root directory and was impossible to browse and sort in some convenient way. So I created this simple script that creates images from all GPX files in a directory in one go.
+I have a lot of gpx files from a data logger on my storage. I wanted to see at a glance, which file contains which track. 
+I am working with debian linux file managers under the desktop environment sfce, which can generate user defined thumbnails from files
+So I adapted the script from Pavel to generate previews and added a thumbnailer definition to generate thumbnails for the tumblerd daemon, used e.g. by thunar  
 
 # Prerequisites
 - basic Python knowledge
@@ -9,14 +11,15 @@ I become lazy to download tracks from my old Garmin GPS regularly so they piled 
 - pillow https://pypi.python.org/pypi/Pillow
 
 # Description
-- iterates through GPX files matching hard-coded mask
-- downloads (steals) map tiles of location into the hard-coded cache directory (works with osm.org or mapy.cz)
+- iterates through GPX files in a directory as requested by tumblerd
+- downloads (steals) map tiles of location into the hard-coded cache directory (works with tiles from openstreetmap.org or mapy.cz)
 - creates the image with the map of area
 - draws track segments from GPX files
+- draws a logarithmic length bar to view length of track  
 - saves the image
 
 # Notes
 - few things are hardcoded at different places, sorry for that
 
 # Result (example)
-![20120812.png](http://i.imgur.com/NU9OcGb.png)
+Not yet available, have to deliver a screenshot without private data
