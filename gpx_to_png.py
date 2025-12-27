@@ -53,8 +53,16 @@ def osm_lat_lon_to_x_y_tile (lat_deg, lon_deg, zoom):
 	ytile = int((1.0 - mod_math.log(mod_math.tan(lat_rad) + (1 / mod_math.cos(lat_rad))) / mod_math.pi) / 2.0 * n)
 	return (xtile, ytile)
 
+def osm_lat_lon_to_x_y_tile_frac (lat_deg, lon_deg, zoom):
+	""" Gets tile containing given coordinate at given zoom level """
+	# taken from http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames, works for OSM maps and mapy.cz
+	lat_rad = mod_math.radians(lat_deg)
+	n = 2.0 ** zoom
+	xtile = (lon_deg + 180.0) / 360.0 * n
+	ytile = (1.0 - mod_math.log(mod_math.tan(lat_rad) + (1 / mod_math.cos(lat_rad))) / mod_math.pi) / 2.0 * n
+	return (xtile, ytile)
 
-def osm_get_auto_zoom_level ( min_lat, max_lat, min_lon, max_lon, max_n_tiles):
+def osm_get_auto_zoom_level_tiles ( min_lat, max_lat, min_lon, max_lon, max_n_tiles):
 	""" Gets zoom level which contains at maximum `max_n_tiles` """
 	for z in range (0,17):
 		x1, y1 = osm_lat_lon_to_x_y_tile (min_lat, min_lon, z)
@@ -65,6 +73,18 @@ def osm_get_auto_zoom_level ( min_lat, max_lat, min_lon, max_lon, max_n_tiles):
 			return z
 	return 17
 
+def osm_get_auto_zoom_level_size ( min_lat, max_lat, min_lon, max_lon, max_width, max_height):
+	""" Gets zoom level which contains at maximum `max_n_tiles` """
+	for z in range (17,0,-1):
+		x1, y1 = osm_lat_lon_to_x_y_tile_frac (min_lat, min_lon, z)
+		x2, y2 = osm_lat_lon_to_x_y_tile_frac (max_lat, max_lon, z)
+		print(x1, x2, y1, y2)
+		w = abs(x2 - x1)*osm_tile_res
+		h = abs(y2 - y1)*osm_tile_res
+		if (w < max_width) and (h < max_height):
+			print(f'w={w}, h={h}, z={z}')
+			return z 
+	return 0	
 
 def osm_cache_tile (x,y,z):
 	""" Downloads tile x,y,x into cache. Directories are automatically created, existing files are not retrieved. """
@@ -173,7 +193,7 @@ if (__name__ == '__main__'):
 	parser = argparse.ArgumentParser(description="Generate images from gpx files.")
 	parser.add_argument("gpx_file", type=str, help="The input .gpx file")
 	parser.add_argument("out_file", type=str, nargs='?', help="The output .png")
-	parser.add_argument("-s", "--size", type=int, default=64, help="The size of the output .png")
+	parser.add_argument("-s", "--size", type=int, default=256, help="The size of the output .png")
 	parser.add_argument("-b", "--background", action="store_true", help="Draw colored background")
 	args = parser.parse_args()
 
@@ -181,6 +201,11 @@ if (__name__ == '__main__'):
 	if not gpx_file:
 		print('No GPX file given')
 		mod_sys.exit(1)
+
+	out_file = args.out_file
+	if not out_file:
+		out_file = gpx_file[:-4] + '-' + get_map_suffix() + '.png'
+		print(f'No out file given, using {out_file}')
 
 	try:
 		gpx = mod_gpxpy.parse(open(gpx_file))
@@ -202,7 +227,8 @@ if (__name__ == '__main__'):
 		print('  Total downhill: %4.0fm' % downhill)
 		min_lat, max_lat, min_lon, max_lon = gpx.get_bounds()
 		print("  Bounds		: [%1.4f,%1.4f,%1.4f,%1.4f]" % (min_lat, max_lat, min_lon, max_lon))
-		z = osm_get_auto_zoom_level (min_lat, max_lat, min_lon, max_lon, 2)
+		#z1 = osm_get_auto_zoom_level_tiles (min_lat, max_lat, min_lon, max_lon, 2)
+		z = osm_get_auto_zoom_level_size (min_lat, max_lat, min_lon, max_lon, args.size, args.size)
 		print("  Zoom Level	: %d" % z)
 
 		# Create the map
@@ -216,7 +242,7 @@ if (__name__ == '__main__'):
 			'%2.1f km/h med' % (length_km / moving_time * 3600) if (moving_time > 0) else "n/a",
 			'%2.1f km/h max' % (max_speed * 3600 / 1000),
 			'%1.0f m up' % uphill,
-		]
+			]
 		map_creator.draw_text(text)
 		#map_creator.save_image (gpx_file[:-4] + '-' + get_map_suffix() + '.png')
 		map_creator.save_image (out_file)
