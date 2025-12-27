@@ -8,6 +8,7 @@ import os as mod_os
 import gpxpy as mod_gpxpy
 from PIL import Image as mod_pil_image
 from PIL import ImageDraw as mod_pil_draw
+from PIL import ImageFont
 import glob as mod_glob
 from pathlib import Path
 home = str(Path.home())
@@ -148,6 +149,14 @@ class MapCreator:
                         y_from = y_to
                     idx += 1
                     
+    def draw_text(self, text):
+        lineheight = 20
+        draw = mod_pil_draw.Draw (self.dst_img)
+        fnt = ImageFont.truetype("FreeMonoBold.ttf", lineheight)
+        x,y = 10,10
+        for line in text:
+            draw.text((x, y), line, font=fnt, fill=(255, 0, 0, 128))
+            y += lineheight
 
     def save_image(self, filename):
         print("Saving " + filename) 
@@ -173,17 +182,18 @@ if (__name__ == '__main__'):
             start_time, end_time = gpx.get_time_bounds()
             print('  Started       : %s' % start_time)
             print('  Ended         : %s' % end_time)
-            print('  Length        : %2.2fkm' % (gpx.length_3d() / 1000.))
+            length_km = gpx.length_3d() / 1000.
+            print('  Length        : %2.2fkm' % length_km)
             moving_time, stopped_time, moving_distance, stopped_distance, max_speed = gpx.get_moving_data()
             print('  Moving time   : %s' % format_time(moving_time))
             print('  Stopped time  : %s' % format_time(stopped_time))
-#            print('  Max speed     : %2.2fm/s = %2.2fkm/h' % (max_speed, max_speed * 60. ** 2 / 1000.))    
+            print('  Max speed     : %2.2fm/s = %2.2fkm/h' % (max_speed, max_speed * 60. ** 2 / 1000.))    
             uphill, downhill = gpx.get_uphill_downhill()
             print('  Total uphill  : %4.0fm' % uphill)
             print('  Total downhill: %4.0fm' % downhill)
             min_lat, max_lat, min_lon, max_lon = gpx.get_bounds()
             print("  Bounds        : [%1.4f,%1.4f,%1.4f,%1.4f]" % (min_lat, max_lat, min_lon, max_lon))
-            z = osm_get_auto_zoom_level (min_lat, max_lat, min_lon, max_lon, 6)
+            z = osm_get_auto_zoom_level (min_lat, max_lat, min_lon, max_lon, 2)
             print("  Zoom Level    : %d" % z)
 
             # Create the map
@@ -191,6 +201,13 @@ if (__name__ == '__main__'):
             map_creator.cache_area()
             map_creator.create_area_background()
             map_creator.draw_track(gpx)
+            text = [
+				'%2.2f km' % (gpx.length_3d() / 1000.),
+				'%1.0f m up' % uphill,
+				'%s' % format_time(moving_time),
+				'%2.1f km/h' % (length_km / moving_time * 3600) if (moving_time > 0) else "n/a",
+				'%2.1f km/h' % (max_speed * 3600 / 1000)]
+            map_creator.draw_text(text)
             map_creator.save_image (gpx_file[:-4] + '-' + get_map_suffix() + '.png')
 
         except Exception as e:
