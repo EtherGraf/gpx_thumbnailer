@@ -8,6 +8,7 @@ import logging as mod_logging
 import urllib as mod_urllib
 import os as mod_os
 import gpxpy as mod_gpxpy
+import gpxpy.utils as mod_utils
 from PIL import Image as mod_pil_image
 from PIL import ImageDraw as mod_pil_draw
 from PIL import ImageFont
@@ -58,7 +59,7 @@ def osm_get_auto_zoom_level_size ( min_lat, max_lat, min_lon, max_lon, max_width
 	for z in range (17,0,-1):
 		x1, y1 = osm_lat_lon_to_x_y_tile_frac (min_lat, min_lon, z)
 		x2, y2 = osm_lat_lon_to_x_y_tile_frac (max_lat, max_lon, z)
-		print(x1, x2, y1, y2)
+		#print(x1, x2, y1, y2)
 		w = abs(x2 - x1)*osm_tile_res
 		h = abs(y2 - y1)*osm_tile_res
 		if (w < max_width) and (h < max_height):
@@ -192,10 +193,59 @@ class MapCreator:
 		for line in text:
 			draw.text((x, y), line, font=fnt, fill=(0, 0, 0, 128))
 			y += lineheight
+			
+	def draw_stops (self, stops):
+		""" Draw GPX track onto map """
+		draw = mod_pil_draw.Draw (self.dst_img)
+		for stop in stops:
+			point = stop[1]
+			x, y = self.lat_lon_to_image_xy (point.latitude, point.longitude)
+			draw.circle((x,y),5,fill="red",outline="red")
 
 	def save_image(self, filename):
 		print("Saving " + filename) 
 		self.dst_img.save (filename)
+
+def search_breaks(gpx, maxradius = 100, maxstoptime = 900):
+	#maxradius	# Radius not leaving defining stops
+	#maxstoptime 	# List all stops up to this time in secondes
+	''' merge all points in single list '''
+	points = []
+	for track in gpx.tracks:
+		for segment in track.segments:
+			points += segment.points
+	
+	breaks = []
+	#print(f'Track has {len(points)] points')
+	for i in range(1,len(points)-1):
+		p = points[i]
+		imin = i
+		imax = i
+		for n in range(i-1, 0, -1):		# search backwards
+			#print (f'previous {n}, {i}')
+			if p.distance_2d(points[n]) > maxradius:
+				break
+			imin = n
+		for n in range(i+1, len(points)):	 # search forward
+			#print (f'afterwards {n}, {i}')
+			if p.distance_2d(points[n]) > maxradius:
+				break
+			imax = n
+		timedelta = points[imax].time - points[imin].time
+		seconds = mod_utils.total_seconds(timedelta)
+		breaks.append((i, imin, imax, seconds))
+	
+	# Find longest stops
+	stops = []
+	while len(breaks)>0:
+		maxgap = max(breaks, key=lambda item: item[3])	# Find largest gap
+		breaks = [t for t in breaks if t[0] < maxgap[1] or t[0] > maxgap[2]]	# Filter out points in this gap
+		maxgaptime = maxgap[3]
+		if maxgaptime < maxstoptime:
+			break
+		#print(F'Largest gap: {maxgap})
+		stops.append((maxgaptime, points[maxgap[0]]))
+	return stops 
 
 if (__name__ == '__main__'):
 	""" Program entry point """
@@ -207,6 +257,7 @@ if (__name__ == '__main__'):
 	parser.add_argument("-t", "--drawtext", action="store_true", help="Draw text information")
 	parser.add_argument("-m", "--drawmap", action="store_true", help="Draw map background")
 	parser.add_argument("-l", "--drawlenbar", action="store_true", help="Draw logarithmic bar signaling legnth of track")
+	parser.add_argument("-p", "--drawstops", action="store_true", help="Draw stops longer than 60 seconds within 100m ")
 	args = parser.parse_args()
 
 	gpx_file = args.gpx_file
@@ -256,8 +307,14 @@ if (__name__ == '__main__'):
 		map_creator.draw_track(gpx)
 
 		if args.drawlenbar:
-			loglen = mod_math.log(length_km)/mod_math.log(1000)	# 1000km = 1.0
-			map_creator.draw_length_bar(loglen)
+			if length_km > 0:
+				loglen = mod_math.log(length_km)/mod_math.log(1000)	# 1km = 0.0, 1000km = 1.0
+				map_creator.draw_length_bar(loglen)
+		
+		if args.drawstops:
+			stops = search_breaks(gpx)
+			#print(f'stops at {stops}')
+			map_creator.draw_stops(stops)
 
 		if args.drawtext:
 			text = [
