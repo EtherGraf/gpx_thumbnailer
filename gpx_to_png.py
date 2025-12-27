@@ -227,6 +227,13 @@ if (__name__ == '__main__'):
 		print('  Total downhill: %4.0fm' % downhill)
 		min_lat, max_lat, min_lon, max_lon = gpx.get_bounds()
 		print("  Bounds		: [%1.4f,%1.4f,%1.4f,%1.4f]" % (min_lat, max_lat, min_lon, max_lon))
+		delta_lat = (max_lat - min_lat)
+		delta_lon = (max_lon - min_lon)
+		min_lat -= delta_lat * 0.1
+		max_lat += delta_lat * 0.1
+		min_lon -= delta_lon * 0.1
+		max_lon += delta_lon * 0.1
+		
 		#z1 = osm_get_auto_zoom_level_tiles (min_lat, max_lat, min_lon, max_lon, 2)
 		z = osm_get_auto_zoom_level_size (min_lat, max_lat, min_lon, max_lon, args.size, args.size)
 		print("  Zoom Level	: %d" % z)
