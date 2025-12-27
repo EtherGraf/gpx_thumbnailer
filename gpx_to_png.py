@@ -217,7 +217,8 @@ if (__name__ == '__main__'):
 	parser.add_argument("gpx_file", type=str, help="The input .gpx file")
 	parser.add_argument("out_file", type=str, nargs='?', help="The output .png")
 	parser.add_argument("-s", "--size", type=int, default=256, help="The size of the output .png")
-	parser.add_argument("-b", "--background", action="store_true", help="Draw colored background")
+	parser.add_argument("-t", "--drawtext", action="store_true", help="Draw text information")
+	parser.add_argument("-m", "--drawmap", action="store_true", help="Draw map background")
 	args = parser.parse_args()
 
 	gpx_file = args.gpx_file
@@ -266,15 +267,15 @@ if (__name__ == '__main__'):
 		map_creator.cache_area()
 		map_creator.create_area_background()
 		map_creator.draw_track(gpx)
-		text = [
-			'%2.2f km' % (gpx.length_3d() / 1000.),
-			'%s' % format_time(moving_time),
-			'%2.1f km/h med' % (length_km / moving_time * 3600) if (moving_time > 0) else "n/a",
-			'%2.1f km/h max' % (max_speed * 3600 / 1000),
-			'%1.0f m up' % uphill,
-			]
-		map_creator.draw_text(text)
-		#map_creator.save_image (gpx_file[:-4] + '-' + get_map_suffix() + '.png')
+		if args.drawtext:
+			text = [
+				'%2.2f km' % (gpx.length_3d() / 1000.),
+				'%s' % format_time(moving_time),
+				'%2.1f km/h med' % (length_km / moving_time * 3600) if (moving_time > 0) else "n/a",
+				'%2.1f km/h max' % (max_speed * 3600 / 1000),
+				'%1.0f m up' % uphill,
+				]
+			map_creator.draw_text(text)
 		map_creator.save_image (out_file)
 
 	except Exception as e:
