@@ -58,7 +58,7 @@ def osm_get_auto_zoom_level ( min_lat, max_lat, min_lon, max_lon, max_n_tiles):
         x1, y1 = osm_lat_lon_to_x_y_tile (min_lat, min_lon, z)
         x2, y2 = osm_lat_lon_to_x_y_tile (max_lat, max_lon, z)
         max_tiles = max (abs(x2 - x1), abs(y2 - y1))
-        if (max_tiles > max_n_tiles):
+        if (max_tiles >= max_n_tiles):
             print ("Max tiles: %d" % max_tiles)
             return z 
     return 17
