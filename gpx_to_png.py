@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 import sys as mod_sys
 import math as mod_math
 import logging as mod_logging
@@ -168,15 +170,19 @@ class MapCreator:
 if (__name__ == '__main__'):
     """ Program entry point """
 
-    gpx_files = mod_sys.argv[1:]
-    if not gpx_files:
-        print('No GPX files given')
+    parser = argparse.ArgumentParser(description="Generate images from gpx files.")
+    parser.add_argument("gpx_file", type=str, help="The input .gpx file")
+    parser.add_argument("out_file", type=str, nargs='?', help="The output .png")
+    parser.add_argument("-s", "--size", type=int, default=64, help="The size of the output .png")
+    parser.add_argument("-b", "--background", action="store_true", help="Draw colored background")
+    args = parser.parse_args()
+
+    gpx_file = args.gpx_file
+    if not gpx_file:
+        print('No GPX file given')
         mod_sys.exit(1)
 
-    #gpx_files = mod_glob.glob (r"c:\devel-python\.tracks\201509*.gpx")
-
-    for gpx_file in gpx_files:
-        try:
+    try:
             gpx = mod_gpxpy.parse(open(gpx_file))
 
             # Print some track stats
@@ -213,7 +219,7 @@ if (__name__ == '__main__'):
             map_creator.draw_text(text)
             map_creator.save_image (gpx_file[:-4] + '-' + get_map_suffix() + '.png')
 
-        except Exception as e:
+    except Exception as e:
             mod_logging.exception(e)
             print('Error processing %s' % gpx_file)
             mod_sys.exit(1) 
