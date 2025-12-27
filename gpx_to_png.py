@@ -10,7 +10,7 @@ from PIL import Image as mod_pil_image
 from PIL import ImageDraw as mod_pil_draw
 import glob as mod_glob
 osm_base_url = "http://a.tile.opencyclemap.org/cycle"
-osm_cache_base = r"c:\devel-python\.cache\opencyclemap"
+osm_cache_base = r"~/.cache/gpx2png"
 osm_tile_res = 256
 
 def format_time(time_s):
@@ -21,19 +21,19 @@ def format_time(time_s):
     return '%s:%s:%s' % (str(int(hours)).zfill(2), str(int(minutes % 60)).zfill(2), str(int(time_s % 60)).zfill(2)) 
 
 def get_tile_url (x, y, z):
-#    return "http://a.tile.opencyclemap.org/cycle/%d/%d/%d.png" % (z, x, y)
-    return "http://m1.mapserver.mapy.cz/turist_trail-m/%d-%d-%d" % (z, x, y)
+     return "http://a.tile.opencyclemap.org/cycle/%d/%d/%d.png" % (z, x, y)
+#    return "http://m1.mapserver.mapy.cz/turist_trail-m/%d-%d-%d" % (z, x, y)
 #    return "http://geoportal-rm.cuzk.cz/WMTS_ZM_900913/WMTService.aspx?service=WMTS&request=GetTile&version=1.0.0&layer=ZM&style=default&format=image/png&TileMatrixSet=googlemapscompatibleext2:epsg:3857&TileMatrix=%d&TileRow=%d&TileCol=%d" % (z, y, x)
 
 
 def get_tile_filename (x, y, z):
-#   return r"c:\devel-python\.cache\opencyclemap\%d\%d\%d.png" % (z, x, y)
-    return r"c:\devel-python\.cache\seznam-turist-trail\%d\%d\%d.png" % (z, x, y)
-#    return r"c:\devel-python\.cache\cuzk-zm\%d\%d\%d.png" % (z, y, x)
+     return r"~/.cache/gpx2png/opencyclemap/%d/%d/%d.png" % (z, x, y)
+#    return r"~/.cache/gpx2png/seznam-turist-trail/%d/%d/%d.png" % (z, x, y)
+#    return r"~/.cache/gpx2png/cuzk-zm/%d/%d/%d.png" % (z, y, x)
 
 def get_map_suffix ():
-#    return "osm-cycle"
-    return "seznam-turist"
+    return "osm-cycle"
+#    return "seznam-turist"
 #    return "cuzk"
 
 def osm_lat_lon_to_x_y_tile (lat_deg, lon_deg, zoom):
@@ -159,12 +159,12 @@ class MapCreator:
 if (__name__ == '__main__'):
     """ Program entry point """
 
-    #gpx_files = mod_sys.argv[1:]
-    #if not gpx_files:
-    #    print('No GPX files given')
-    #    mod_sys.exit(1)
+    gpx_files = mod_sys.argv[1:]
+    if not gpx_files:
+        print('No GPX files given')
+        mod_sys.exit(1)
 
-    gpx_files = mod_glob.glob (r"c:\devel-python\.tracks\201509*.gpx")
+    #gpx_files = mod_glob.glob (r"c:\devel-python\.tracks\201509*.gpx")
 
     for gpx_file in gpx_files:
         try:
