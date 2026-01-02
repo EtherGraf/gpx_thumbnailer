@@ -9,7 +9,7 @@ In a console kill the current running tumblerd daemon
 and start tumblerd again with debug flags:
 
   pkill tumblerd
-  G_MESSAGES_PREFIXED= G_MESSAGES_DEBUG=all /usr/lib/tumbler-1/tumblerd
+  G_MESSAGES_PREFIXED= G_MESSAGES_DEBUG=all /usr/lib/x86_64-linux-gnu/tumbler-1/tumblerd
 
 Watch the debug outputs
 
