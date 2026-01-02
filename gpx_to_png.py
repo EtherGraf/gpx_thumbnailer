@@ -247,6 +247,41 @@ def search_breaks(gpx, maxradius = 100, maxstoptime = 900):
 		stops.append((maxgaptime, points[maxgap[0]]))
 	return stops 
 
+
+def detectXMLEncoding(fp):
+	oldFP = fp.tell()
+	fp.seek(0)
+
+	### search xml declaration for encoding attribute
+	import re
+
+	## assume xml declaration fits into the first 2 KB (*cough*)
+	buffer = fp.readline(100).decode() # asumes header in one single line and a decodable default encoding for this line
+
+	## set up regular expression
+	xmlDeclPattern = r"""
+	^<\?xml			 # w/o BOM, xmldecl starts with <?xml at the first byte
+	.+?				 # some chars (version info), matched minimal
+	encoding=		   # encoding attribute begins
+	["']				# attribute start delimiter
+	(?P<encstr>		 # what's matched in the brackets will be named encstr
+	 [^"']+			  # every character not delimiter (not overly exact!)
+	)				   # closes the brackets pair for the named group
+	["']				# attribute end delimiter
+	.*?				 # some chars optionally (standalone decl or whitespace)
+	\?>				 # xmldecl end
+	"""
+
+	xmlDeclRE = re.compile(xmlDeclPattern, re.VERBOSE)
+
+	## search and extract encoding string
+	match = xmlDeclRE.search(buffer)
+	fp.seek(oldFP)
+	if match :
+		return match.group("encstr")
+	else :
+		return None
+
 if (__name__ == '__main__'):
 	""" Program entry point """
 
@@ -271,7 +306,11 @@ if (__name__ == '__main__'):
 		print(f'No out file given, using {out_file}')
 
 	try:
-		gpx = mod_gpxpy.parse(open(gpx_file))
+		xml = open(gpx_file, 'rb')
+		encoding = detectXMLEncoding(xml)
+		if encoding != None:				# if given encoding in xml, 
+			xml = xml.read().decode(encoding)	# decode it
+		gpx = mod_gpxpy.parse(xml)			# otherwise use file directly
 
 		# Print some track stats
 		print ('--------------------------------------------------------------------------------')
