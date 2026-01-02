@@ -231,9 +231,12 @@ def search_breaks(gpx, maxradius = 100, maxstoptime = 900):
 			if p.distance_2d(points[n]) > maxradius:
 				break
 			imax = n
-		timedelta = points[imax].time - points[imin].time
-		seconds = mod_utils.total_seconds(timedelta)
-		breaks.append((i, imin, imax, seconds))
+		time1 = points[imin].time
+		time2 = points[imax].time
+		if time1 is not None and time1 is not None:
+			timedelta = time2 - time1
+			seconds = mod_utils.total_seconds(timedelta)
+			breaks.append((i, imin, imax, seconds))
 	
 	# Find longest stops
 	stops = []
