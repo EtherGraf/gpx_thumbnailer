@@ -10,6 +10,7 @@ sed -e "s#\$HOME#$HOME#g" gpx.thumbnailer.template > gpx.thumbnailer
 
 mkdir -p ~/.local/share/thumbnailers
 cp *.thumbnailer ~/.local/share/thumbnailers
+mkdir -p ~/.local/bin
 cp gpx_to_png.py ~/.local/bin/gpx_to_png.py
 
 
