@@ -1,7 +1,10 @@
 # Clear thumbnails cache 
 # rm -r ~/.cache/thumbnails
-
-
+if $(dpkg --verify python3-gpxpy); then
+	echo python3-gpxpy already installed
+else
+	sudo apt install python3-gpxpy
+fi
 
 # user install
 # recommened solution 
