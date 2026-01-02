@@ -22,4 +22,5 @@ So I adapted the script from Pavel to generate previews and added a thumbnailer 
 - few things are hardcoded at different places, sorry for that
 
 # Result (example)
-Not yet available, have to deliver a screenshot without private data
+In the file explorer, e.g. thunar it looks like this:
+![Screenshot of thumbnails](doc/screenshot-thumbnails.png)
